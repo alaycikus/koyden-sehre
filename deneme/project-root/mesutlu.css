@@ -1,0 +1,858 @@
+/*--------------------------------- mesutluya tıkladığında oyun sayfası açılır sayfası--------------------------------- */
+
+.mesutlu-screen {
+    display: flex; /* Başlangıçta gizli */
+    background-color: #2c8946; /* Koyu yeşil arka plan */
+    color: white;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute; /* Konumlandırmayı tam ekran yapalım */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20; /* Diğer ekranların üstünde görünmesini sağlamak için */
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  /* Metin ve başlık stillerini güncelleyelim */
+  .mesutlu-screen h1, .mesutlu-screen p {
+    color: white;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5); /* Metinleri daha belirgin yapalım */
+  }  
+  
+  /* Grid stil ayarları */
+  .grid-container {
+        /* Ana kapsayıcı - tüm grid yapısını içerir */
+    width: 70vmin;        /* Ekranın en küçük kenarının %70'i kadar genişlik */
+    max-width: 450px;     /* Maximum 450px genişlik sınırı */
+    position: fixed;      /* Sabit pozisyon, scroll etkilemez */
+    top: 50%;            /* Üstten %50 boşluk */
+    left: 50%;           /* Soldan %50 boşluk */
+    transform: translate(-50%, -50%); /* Tam merkeze hizalama */
+  }
+  
+  .grid {
+        /* Grid yapısının kendisi - 8x9'luk ızgara */
+    display: grid;           /* Izgara düzeni */
+    grid-template-columns: repeat(8, 1fr); /* 8 eşit sütun */
+    grid-template-rows: repeat(9, 1fr);    /* 9 eşit satır */
+    gap: 0;                 /* Hücreler arası boşluk yok */
+    width: 100%;            /* Tam genişlik */
+    aspect-ratio: 8/9;      /* En-boy oranı */
+    margin-top: 0;          /* Üst boşluk yok */
+    background-color: #c4966f; /* Arka plan rengi */
+  }
+
+  .grid-item {
+    aspect-ratio: 1; /* Kare şeklinde kalmasını sağla */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .symbol {
+    width: 85%; /* Web için daha küçük */
+    height: 85%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: clamp(18px, 3.5vw, 22px); /* Web için daha küçük font */
+  }
+
+  .symbol.selected {
+    position: relative; /* İkonu yerleştirmek için gerekli */
+    border: none; /* Çerçeveyi kaldır */
+    box-shadow: none; /* Gölge efektini kaldır */
+  }
+
+  .symbol.selected::after {
+    content: url('https://icons.iconarchive.com/icons/pictogrammers/material/72/border-radius-icon.png');
+    position: absolute;
+    top: -6px; /* İkonun konumunu ayarlayın */
+    right: -11px; /* İkonun konumunu ayarlayın */
+    width: 72px; /* İkonun genişliğini 2 katına çıkarın */
+    height: 72px; /* İkonun yüksekliğini 2 katına çıkarın */
+    filter: hue-rotate(60deg); /* Rengini sarı yapın */
+  }
+
+  .symbol img {
+    width: 80%; /* Görselin hücreye sığması için */
+    height: 80%;
+    object-fit: contain; /* Görselin orantılı şekilde küçültülmesi */
+    pointer-events: none; /* Görselin üzerine tıklanmasını engelliyoruz */
+  }
+
+  .grid-item .symbol.matched {
+    background-color: #6bf76b !important;
+    border-radius: 5px !important;
+    padding: 3px !important;
+    width: 35px !important;
+    height: 35px !important;
+    font-size: 22px !important;
+  }
+
+  /* Sürükleme sırasında matched arka planını gizle */
+  .grid-item .symbol.matched.dragging {
+    background-color: transparent !important;
+  }
+
+  /* ------------------------------------------------ Sıfırlama Butonu ------------------------------------------------*/
+
+    /* Geri dön butonu stilini düzenleyin */
+    #back-button {
+      position: absolute;
+      bottom: 2%;  /* Alt kısmı %10 kadar uzaklaştır */
+      left: 80%; /* Sol kenardan %60 uzaklaştır */
+      background-color: #4CAF50; /* Yeşil arka plan */
+      color: white;  /* Beyaz yazı rengi */
+      font-size: 2.0rem;  /* Yazı boyutu */
+      padding: 10px 10px; /* Butonun içindeki yazıya göre genişlik ve yükseklik */
+      border: none;
+      border-radius: 10px;  /* Butonun köşelerini yuvarlat */
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      z-index: 1000; /* En üstte görünmesi için yüksek bir değer verin */
+    }
+    
+    #back-button:hover {
+      background-color: #45a049; /* Hover efektiyle renk değişimi */
+    }
+
+    /* Sıfırlama butonu stilini ekleyin */
+    #reset-button {
+      position: absolute;
+      bottom: 2%;  /* Alt kısmı %10 kadar uzaklaştır */
+      right: 80%; /* Sağ kenardan %60 uzaklaştır */
+      background-color: #f44336; /* Kırmızı arka plan */
+      color: white;  /* Beyaz yazı rengi */
+      font-size: 1.5rem;  /* Yazı boyutu */
+      padding: 15px 15px; /* Butonun içindeki yazıya göre genişlik ve yükseklik */
+      border: none;
+      border-radius: 10px;  /* Butonun köşelerini yuvarlat */
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      z-index: 1000; /* En üstte görünmesi için yüksek bir değer verin */
+    }
+    
+    #reset-button:hover {
+      background-color: #d32f2f; /* Hover efektiyle renk değişimi */
+    }
+
+    .sell-button {
+      position: absolute;
+      top: -23px; /* Üst ortasına yerleştirmek için yukarıya taşı */
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #3ec42d; /* Kırmızı arka plan */
+      color: white; /* Beyaz yazı rengi */
+      border: none;
+      border-radius: 5px;
+      padding: 3px 8px;
+      cursor: pointer;
+      display: none; /* Başlangıçta gizli */
+      transition: background-color 0.3s ease;
+      animation: fadeIn 0.5s ease-in-out; /* Animasyon ekle */
+    }
+    
+    .sell-button:hover {
+      background-color: #ff4500; /* Hover efektiyle renk değişimi */
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px); /* Yukarıdan gelme efekti */
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0); /* Normal konuma gel */
+      }
+    }
+
+    /* Diğer CSS kodlarınız burada */
+
+    .character-container {
+      width: 100%;         /* Grid-container'ın tüm genişliğini kaplar */
+      height: 50px;        /* Sabit 50px yükseklik */
+      display: flex;       /* Yatayda esnek dizilim */
+      justify-content: center; /* Yatayda ortala */
+      align-items: flex-end;  /* Dikeyde alta hizala */
+      gap: 0.5vmin;          /* Elementler arası boşluk */
+      margin: 0;             /* Dış boşluk yok */
+      padding: 0;            /* İç boşluk yok */
+    }
+
+    .character-rectangle {
+      width: calc(70vmin / 3);  /* Container genişliğinin üçte biri */
+      max-width: 150px;         /* Maximum 150px genişlik */
+      height: 50px;             /* Sabit 50px yükseklik */
+      background-color: #FFFF66; /* Arka plan rengi */
+      display: flex;            /* İçerik esnek dizilim */
+      justify-content: flex-start; /* İçeriği sola yasla */
+      align-items: center;      /* İçeriği dikeyde ortala */
+      border: 1px solid #000;   /* Kenarlık */
+      box-sizing: border-box;   /* Boyut hesabına border dahil */
+    }
+
+    .character-rectangle img {
+      width: 50px;
+      height: 50px;
+      margin-right: auto; /* Karakteri sağa hizala */
+    }
+
+    .static-symbol {
+      position: absolute;
+      left: 10px; /* Sembolleri sağa hizala */
+      font-size: 24px;
+      pointer-events: none; /* Make it non-clickable */
+    }
+
+    /*--------------------------------- Profil ve XP Dikdörtgeni ---------------------------------*/
+    .profile-xp-rectangle {
+      width: 60px;
+      height: 55px;
+      background-color: #66FF99;
+      border: 1px solid #fdfcfc00;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      position: absolute; /* Sabit konumlandırma */
+      top: 3%;
+      left: calc(50% - 165px); /* 3'lü dikdörtgenin soluna yerleştirin */
+      transform: translateX(-50%);
+      padding: 0px;
+      box-sizing: border-box;
+      border: 5px solid white; /* Beyaz ve kalın çerçeve */
+      border-radius: 10px; /* Çerçeveyi yuvarlatmak için */
+      z-index: 1000; /* Diğer öğelerin üstünde görünmesi için */
+    }
+
+    .xp-system {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .xp-star {
+      position: absolute; /* Yıldızı profil fotoğrafının sol altına yerleştireceğiz */
+      left:  -15px;
+      bottom: -5px;
+      font-size: 25px;
+      color: #3399FF;
+      margin: -2px; /* Yıldızın fotoğrafa daha yakın olması için */
+    }
+
+
+    .profile-selection {
+      position: relative; /* Yıldızı fotoğrafın sol altına yerleştirmek için */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .profile-img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%; /* Profil fotoğrafı yuvarlak olacak */
+      border: none; /* Çerçeve kaldırıldı */
+      cursor: pointer;
+    }
+
+    /*--------------------------------- Profil Popup Stili ---------------------------------*/
+    body, html {
+      overflow: hidden; /* Sağa sola kaydırmayı engelle */
+      width: 100%;
+      height: 100%;
+    }
+
+    .profile-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), rgba(50, 50, 50, 0.8));
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.5s ease-in-out; /* Açılırken yumuşak animasyon */
+      overflow: hidden; /* Sağa sola kaymayı engelle */
+    }
+
+    .popup-content {
+      background: #facd7e; /* Ten rengi arka plan */
+      padding: 25px;
+      border-radius: 15px; /* Daha yumuşak köşeler */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Daha belirgin gölge efekti */
+      max-width: 90%; /* Ekrana sığması için genişlik ayarı */
+      max-height: 90%; /* Ekrana sığması için yükseklik ayarı */
+      overflow-y: auto;
+      transition: transform 0.3s ease-in-out; /* Hafif büyüme efekti */
+      transform: scale(1.1);
+      position: relative; /* Kapatma ikonunu konumlandırmak için */
+      overflow-y: auto;
+      overflow-x: hidden;/* Yatay kaydırmayı engelle */
+    }
+
+    .profile-popup.show .popup-content {
+      animation: scaleUp 0.4s ease-out;  /* Açılınca büyüt */
+    }
+
+    @keyframes scaleUp {
+      from {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .popup-content h2 {
+      margin-bottom: 20px;
+      color: #444; /* Biraz daha açık bir gri */
+      font-size: 1.8rem; /* Başlık boyutu */
+      text-align: center;
+    }
+
+    .popup-content p {
+      color: #666; /* Paragraf için nötr bir ton */
+      line-height: 1.6; /* Daha rahat okunabilirlik için */
+      margin-bottom: 15px;
+    }
+
+    .popup-content button {
+      display: none; /* Kaydet tuşunu gizle */
+    }
+
+    .nickname-input {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      width: 80%;
+      max-width: 300px;
+      box-sizing: border-box;
+      margin-left: 20px; /* Nickname'i fotoğrafa göre biraz kaydır */
+      margin-top: 10px;  /* Üste boşluk ekleyin */
+    }
+
+    .profile-images {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* Her satırda 3 görsel */
+      gap: 10px;
+      justify-content: center;
+      padding: 10px; /* Çerçeve içi boşluk */
+      background-color: #4a7c59; /* Koyu yeşil arka plan */
+      border: 5px solid #2e5233; /* Kalın kenar */
+      border-radius: 10px; /* Köşeleri yuvarlat */
+    }
+
+    .profile-img-option {
+      width: 100%; /* Görselleri biraz daha büyük yapın */
+      max-width: 70px; /* Maksimum genişlik */
+      max-height: 70px; /* Maksimum yükseklik */
+      object-fit: cover; /* Görsellerin taşmasını engelleyin */
+      cursor: pointer;
+      border-radius: 30%; /* Görselleri yuvarlak yapın */
+      border: 2px solid transparent; /* Varsayılan olarak şeffaf çerçeve */
+      transition: border-color 0.3s ease; /* Çerçeve rengini yumuşak geçişle değiştirin */
+    }
+
+    .profile-img-option:hover {
+      border-color: #4CAF50; /* Hover durumunda yeşil çerçeve */
+    }
+
+    .close-popup-btn {
+      margin-top: 20px;
+      padding: 10px 20px; /* Butonu biraz daha büyük yapın */
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .close-popup-btn:hover {
+      background-color: #45a049;
+    }
+
+    .close-popup-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #444; /* Kapatma ikonunun rengi */
+      transition: color 0.3s ease;
+      color: #ff0000; /* Hover durumunda kırmızı renk */
+
+    }
+
+    /* 3 Dikdörtgen için stil */
+    .rectangle-container {
+      display: flex;
+      gap: 10px; /* Dikdörtgenler arasındaki boşluk */
+      position: absolute;
+      top: 5%;
+      left: 51.5%;
+      transform: translateX(-50%);
+    }
+
+    .rectangle {
+      width: 90px;
+      height: 30px;
+      background-color: #f5e2c1; /* Arka plan rengini beyaz yap */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .rectangle-container .rectangle:first-child {
+      width: 70px; /* Genişliği küçült */
+    }
+
+    .energy-symbol {
+      font-size: 40px;
+      color: gold;
+      position: absolute;
+      top: 60%;
+      left: 1%;
+      transform: translate(-50%, -50%);
+    }
+
+    .energy-text {
+      font-size: 16px;
+      color: #341e01;
+    }
+
+    /*   enerji  yenilenme süresi görünür olmasını sağlar   */
+    .energy-refresh-text {
+      display: none; /* Varsayılan olarak gizli */  
+      font-size: 14px;
+      color: #f5f5f5;
+      position: absolute;  /* Belirli bir konumda sabitler */
+      top: 115%;  /* Dikeyde %50 konumlandırma */
+      left: 20%;  /* Yatayda %50 konumlandırma */
+      transform: translate(-50%, -50%); /* Orta noktayı tam ortaya yerleştirir */
+      background-color: rgba(0, 0, 0, 0.5); /* Şeffaf siyah arka plan */
+      padding: 5px 10px; /* İç boşluk */
+      border-radius: 5px; /* Köşeleri yuvarlat */
+      display: inline-block; /* Blok yapısı için */
+    }
+
+
+    .rectangle svg {
+      width: 13%;
+      height: auto;
+      position: absolute;
+      top: 50%;
+      left: 38%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Profil resmini ve kullanıcı adını yan yana yerleştirmek için CSS stilini güncelleyin */
+    .nickname-container {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start; /* Profil foto ile nickname'i yan yana hizala */
+      gap: 10px; /* Aralarında boşluk ekle */
+      margin-bottom: 20px;
+      transform: none; /* Eskiden 1.5 kat büyütme vardı, kaldırıyoruz */
+      position: relative; /* edit-icon'u konumlandırmak için */
+    }
+
+    .selected-profile-img {
+      width: 70px; /* Küçültülmüş genişlik */
+      height: 70px; /* Küçültülmüş yükseklik */
+      border-radius: 50%; /* Yuvarlak profil resmi */
+      margin-right: 0; /* Gerekli boşluğu gap ile sağlıyoruz */
+    }
+
+    .nickname-input {
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      width: 50%; /* Genişliği daralt */
+      max-width: 200px; /* Maksimum genişliği daralt */
+      box-sizing: border-box;
+      margin-left: 20px; /* Nickname'i fotoğrafa göre biraz kaydır */
+      margin-top: 10px;  /* Üste boşluk ekleyin */
+    }
+
+    .edit-icon {
+      display: inline-block;
+      margin-left: 5px;
+      padding: 5px;
+      border: none; /* Kesikli çizgileri kaldır */
+      border-radius: 4px;
+      cursor: pointer;
+      position: absolute; /* nickname-container içinde konumlandırmak için */
+      right: 16%; /* Sağ tarafa hizala */
+      top: 42%; /* Dikeyde ortala */
+      transform: translateY(-50%); /* Gerçek ortalama */
+      color: #4CAF50; /* Yeşil renk */
+      font-size: 24px; /* İkonun boyutunu artır */
+    }
+
+    .fa-coins {
+      font-size: 2em; /* Boyutu 1.5 kat büyüt */
+      display: inline-block;
+      line-height: normal;
+      position: absolute; /* nickname-container içinde konumlandırmak için */
+      left: 26%; /* Sola kaydır */
+      top: 50%; /* Dikeyde ortala */
+      transform: translateY(-50%); /* Gerçek ortalama */
+    }
+
+    .fa-solid.fa-gem.fa-2xl {
+      font-size: 2em; /* Boyutu 1.5 kat büyüt */
+      position: absolute; /* nickname-container içinde konumlandırmak için */
+      left: 63%; /* Sola kaydır */
+      top: 50%; /* Dikeyde ortala */
+      transform: translateY(-50%); /* Gerçek ortalama */
+    }
+
+    .diamond-text {
+      margin-left: 15px; /* Yazıyı sağa kaydır */
+      font-size: 1.2em; /* Yazı boyutunu artır */
+      color: #040304; /* Yazı rengini elmas rengine uygun yap */
+    }
+
+    .gold-text{
+      margin-left: 15px; /* Yazıyı sağa kaydır */
+      color: #040304; /* Yazı rengini elmas rengine uygun yap */
+    }
+
+    /* Mağaza Popup Stili */
+    .store-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), rgba(50, 50, 50, 0.8));
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.5s ease-in-out; /* Açılırken yumuşak animasyon */
+      overflow: hidden; /* Sağa sola kaymayı engelle */
+    }
+
+    .store-popup .popup-content {
+      background: #facd7e; /* Ten rengi arka plan */
+      padding: 25px;
+      border-radius: 15px; /* Daha yumuşak köşeler */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Daha belirgin gölge efekti */
+      max-width: 90%; /* Ekrana sığması için genişlik ayarı */
+      max-height: 90%; /* Ekrana sığması için yükseklik ayarı */
+      overflow-y: auto;
+      transition: transform 0.3s ease-in-out; /* Hafif büyüme efekti */
+      transform: scale(1.1);
+      position: relative; /* Kapatma ikonunu konumlandırmak için */
+      overflow-y: auto;
+      overflow-x: hidden;/* Yatay kaydırmayı engelle */
+    }
+
+    .store-popup.show .popup-content {
+      animation: scaleUp 0.4s ease-out;  /* Açılınca büyüt */
+    }
+
+    @keyframes scaleUp {
+      from {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    #store-icon {
+      position: absolute;
+      top: 50%; /* İkonu biraz aşağı indir */
+      left: 109%;
+      transform: translate(-50%, -50%);
+    }
+
+    .description-rectangle {
+      position: absolute; /* Sabit konumlandırma */
+      width: 275px;
+      height: 55px; /* Yüksekliği */
+      background-color: #f0f0f0;
+      color: #000; /* Yazı rengini siyah yap */
+      padding: 10px;
+      box-sizing: border-box;
+      text-align: center;
+      border-top: 0px solid #ccc;
+      bottom: 20px; /* Grid'in altına sabitle */
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 15px; /* Köşeleri belirgin şekilde yuvarla */
+    }
+
+    .description-rectangle p {
+      margin-top: 4px; /* Yazıyı yukarıya çıkar */
+      font-size: 1.0rem; /* Yazı boyutunu küçült */
+    }
+
+    .description-rectangle img,
+    .description-rectangle i {
+      width: 30px;
+      height: 30px;
+    }
+
+    /* Altın miktarını göstermek için .gold-display sınıfı */
+    .gold-display {
+      position: absolute;
+      top: -22px;
+      left: 0px;
+      background-color: rgba(243, 226, 129, 0.8); /* Altın rengi arka plan */
+      color: #000; /* Siyah yazı rengi */
+      padding: 2px 5px;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    /* Mobil cihazlar için özel ayarlar */
+    @media (max-width: 768px) {
+      .mesutlu-screen {
+        padding: 10px;
+      }
+
+      .grid-container {
+        width: 85vmin;
+        min-width: 280px;
+        position: fixed;
+        top: 45%; /* Biraz daha yukarı */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0 auto;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .grid {
+        margin: 0 auto; /* Yatayda otomatik merkezleme */
+        width: 100%;
+      }
+      
+      .character-rectangle {
+        width: calc(85vmin / 3);
+        min-width: 90px;
+      }
+      
+      .character-container {
+        gap: 0.3vmin;
+        width: 100%;
+        justify-content: center; /* Yatayda merkezleme */
+      }
+
+      .grid-item {
+        width: 35px !important;
+        height: 35px !important;
+        min-width: 35px !important;
+        min-height: 35px !important;
+        max-width: 35px !important;
+        max-height: 35px !important;
+      }
+
+      .symbol {
+        width: 95%; /* Mobil için daha büyük */
+        height: 95%;
+        font-size: clamp(20px, 4vw, 26px); /* Mobil için daha büyük font */
+      }
+
+      .sell-button {
+        padding: 2px 6px;
+      }
+
+      .profile-xp-rectangle {
+        width: 50px;
+        height: 45px;
+      }
+
+      .profile-img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .xp-star {
+        font-size: 20px;
+      }
+
+      .rectangle {
+        width: 70px;
+        height: 25px;
+      }
+
+      .energy-symbol {
+        font-size: 30px;
+      }
+
+      .energy-text {
+        font-size: 14px;
+      }
+
+      .energy-refresh-text {
+        font-size: 12px;
+      }
+
+      .gold-display {
+        font-size: 12px;
+      }
+
+      .nickname-container {
+        gap: 5px;
+      }
+
+      .selected-profile-img {
+        width: 60px;
+        height: 60px;
+      }
+
+      .nickname-input {
+        width: 40%;
+        max-width: 150px;
+      }
+
+      .edit-icon {
+        font-size: 20px;
+      }
+
+      .fa-coins, .fa-solid.fa-gem.fa-2xl {
+        font-size: 1.5em;
+      }
+
+      .diamond-text, .gold-text {
+        font-size: 1em;
+      }
+
+      .store-popup .popup-content {
+        padding: 20px;
+      }
+
+      .close-popup-icon {
+        font-size: 20px;
+      }
+
+      .description-rectangle {
+        width: 200px;
+        height: 45px;
+      }
+
+      .description-rectangle p {
+        font-size: 0.8rem;
+      }
+
+      .description-rectangle img,
+      .description-rectangle i {
+        width: 25px;
+        height: 25px;
+      }
+
+      .grid-item .symbol.matched {
+        width: 32px !important; /* Mobil için matched boyutunu büyüttük */
+        height: 32px !important;
+        font-size: 20px !important;
+        padding: 2px !important;
+      }
+    }
+
+    /* Daha küçük ekranlar için ek medya sorgusu */
+    @media (max-width: 320px) {
+      .character-rectangle {
+        width: 85px; /* Daha da küçük ekranlar için */
+        height: 40px;
+        font-size: 12px;
+      }
+    }
+
+/*
+CSS SINIFLARININ AÇIKLAMALARI:
+
+.grid-container:
+- Ana kapsayıcı div, tüm grid yapısını içerir
+- Ekranın ortasında sabit pozisyonda durur
+- Boyutu ekran boyutuna göre dinamik olarak ayarlanır (vmin)
+- Maximum genişlik sınırı vardır
+
+.grid:
+- 8x9'luk ızgara yapısını oluşturur
+- display: grid ile ızgara düzeni sağlar
+- Sütun ve satırlar eşit bölünür (1fr)
+- 8:9 en-boy oranını korur
+- Tarla arka plan rengini belirler
+
+.grid-item:
+- Her bir ızgara hücresi
+- İçeriği (sembolleri) ortalar
+- Kare şeklinde kalmasını sağlar
+- Taşan içeriği gizler
+- Margin ve padding sıfırdır
+
+.symbol:
+- Grid içindeki emoji sembolleri (🌲, 🍎 vb.)
+- Hücre içinde ortalı durur
+- Boyutu hücrenin %90'ı kadardır
+- Tıklanabilir cursor gösterir
+- Responsive font boyutu kullanır
+
+.grid-item .symbol.matched:
+- Eşleşen sembollerin stil özellikleri
+- Yeşil arka plan rengi
+- Yuvarlatılmış köşeler
+- Özel padding ve boyut değerleri
+- Sabit font boyutu
+
+.grid-item .symbol.matched.dragging:
+- Sürükleme sırasında eşleşmiş sembollerin stili
+- Arka plan rengini gizler
+
+.character-container:
+- Karakter kutularının kapsayıcısı
+- Grid'in üstünde yer alır
+- Yatayda merkezli flex düzen
+- Kutular arası boşluk (gap) ayarı
+
+.character-rectangle:
+- Her bir karakter kutusu
+- Sarı arka planlı
+- Sabit yükseklik
+- Genişlik grid'e oranla hesaplanır
+- İçerik sola yaslı
+
+Mobil Görünüm (@media max-width: 768px):
+- Grid ve kutuların boyutları küçülür
+- Minimum genişlik sınırları uygulanır
+- Boşluklar azaltılır
+*/
+
+
+
+
